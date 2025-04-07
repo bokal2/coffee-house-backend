@@ -1,5 +1,5 @@
 import logging
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import json
 import sys
 
 
@@ -8,7 +8,7 @@ def setup_logging():
     logger.setLevel(logging.INFO)
 
     log_handler = logging.StreamHandler(sys.stdout)
-    formatter = jsonlogger.JsonFormatter(
+    formatter = json.JsonFormatter(
         fmt="%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d"
     )
     log_handler.setFormatter(formatter)

@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+from datetime import datetime as dt, timezone
 from sqlalchemy import Column, Integer, String, DateTime
 from src.db.core import Base
 
@@ -10,4 +10,4 @@ class Order(Base):
     coffee_name = Column(String)
     size = Column(String)
     quantity = Column(Integer)
-    created_at = Column(DateTime, default=dt.utcnow)
+    created_at = Column(DateTime, default=dt.now(timezone.utc))
