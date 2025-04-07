@@ -1,4 +1,5 @@
 import os
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 import logging
@@ -23,6 +24,8 @@ database_url = (
 print(f"--- Connecting to database at {database_url} ---")
 # Create async engine
 engine = create_async_engine(database_url, echo=True)
+
+Base = declarative_base()
 
 # Create async session factory
 async_session = sessionmaker(

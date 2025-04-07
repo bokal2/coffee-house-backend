@@ -1,8 +1,6 @@
-from sqlalchemy.orm import declarative_base
 from datetime import datetime as dt
 from sqlalchemy import Column, Integer, String, DateTime
-
-Base = declarative_base()
+from src.db.core import Base
 
 
 class Order(Base):

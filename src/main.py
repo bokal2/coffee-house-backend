@@ -1,16 +1,16 @@
-from fastapi import FastAPI, Depends, Request, Response
+from fastapi import FastAPI, Request, Response
 import logging
 from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from sqlalchemy.ext.asyncio import AsyncSession
 from prometheus_fastapi_instrumentator import Instrumentator
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
-from db.session import engine
-from db.items import OrderIn, retrieve_all_orders, add_new_oder
-from db.core import get_db
-from models import Base
-from core.logging_config import setup_logging
+from src.db.core import engine, Base
+from src.logging import setup_logging
+from src.api import register_routes
+from src.rate_limiting import limiter
 
 
 setup_logging()
@@ -33,6 +33,9 @@ app = FastAPI(
     description=("Coffee House is a simple API that allows you to order coffee."),
     lifespan=lifespan,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure allowed origins
 origins = [
@@ -88,13 +91,4 @@ def health():
 
 Instrumentator().instrument(app).expose(app)
 
-
-@app.get("/orders")
-async def get_orders(db: AsyncSession = Depends(get_db)):
-    orders = await retrieve_all_orders(db)
-    return orders
-
-
-@app.post("/orders")
-async def create_order(order: OrderIn, db: AsyncSession = Depends(get_db)):
-    return await add_new_oder(db, order)
+register_routes(app)

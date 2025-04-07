@@ -1,34 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from pydantic import BaseModel, ConfigDict
-from enum import StrEnum
-
-from models import Order
-
-
-class CoffeType(StrEnum):
-    espresso = "Espresso"
-    latte = "Latte"
-    cappuccino = "Cappuccino"
-    americano = "Americano"
-
-
-class CoffeeSize(StrEnum):
-    small = "Small"
-    medium = "Medium"
-    large = "Large"
-
-
-class OrderIn(BaseModel):
-    coffee_name: CoffeType
-    size: CoffeeSize
-    quantity: int
-
-
-class OrderOut(OrderIn):
-    id: int
-
-    model_config = ConfigDict(from_attributes=True)
+from src.order.model import OrderIn, OrderOut
+from src.entities.order import Order
+from src.exceptions import OrderNotFoundError
 
 
 async def retrieve_all_orders(db: AsyncSession) -> list[OrderOut]:
@@ -43,3 +17,11 @@ async def add_new_oder(db: AsyncSession, order: OrderIn) -> OrderOut:
     await db.commit()
     await db.refresh(new_order)
     return OrderOut.model_validate(new_order)
+
+
+async def get_order(db: AsyncSession, order_id: int) -> OrderOut:
+    result = await db.execute(select(Order).filter(id=order_id))
+    order = result.scalars().one()
+    if not order:
+        raise OrderNotFoundError(order_id=order_id)
+    return OrderOut.model_validate(order)
